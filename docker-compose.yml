@@ -1,0 +1,10 @@
+services:
+  lets-go:
+    container_name: lets-go
+    image: cosmtrek/air
+    working_dir: /snippetbox
+    ports:
+      - "80:4000"
+    restart: unless-stopped
+    volumes:
+      - ./snippetbox/:/snippetbox/
