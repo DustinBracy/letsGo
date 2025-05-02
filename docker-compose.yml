@@ -4,7 +4,24 @@ services:
     image: cosmtrek/air
     working_dir: /snippetbox
     ports:
-      - "80:4000"
+      - "4000:4000"
     restart: unless-stopped
     volumes:
       - ./snippetbox/:/snippetbox/
+
+  mysql:
+    container_name: mysql
+    image: mysql:9
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: snippetbox
+      MYSQL_USER: web
+      MYSQL_PASSWORD: web
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+
+volumes:
+  mysql-data:
