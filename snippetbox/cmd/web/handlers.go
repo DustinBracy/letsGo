@@ -66,10 +66,10 @@ func (app *application) snippetCreate(w http.ResponseWriter, r *http.Request) {
 // struct. Embedding this means that our snippetCreateForm "inherits" all the
 // fields and methods of our Validator struct (including the FieldErrors field).
 type snippetCreateForm struct {
-	Title   string
-	Content string
-	Expires int
-	validator.Validator
+	Title               string `form:"title"`
+	Content             string `form:"content"`
+	Expires             int    `form:"expires"`
+	validator.Validator `form:"-"`
 }
 
 func (app *application) snippetCreatePost(w http.ResponseWriter, r *http.Request) {
