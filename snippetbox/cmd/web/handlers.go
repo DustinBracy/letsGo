@@ -73,42 +73,19 @@ type snippetCreateForm struct {
 }
 
 func (app *application) snippetCreatePost(w http.ResponseWriter, r *http.Request) {
-	err := r.ParseForm()
+	var form snippetCreateForm
+
+	err := app.decodePostForm(r, &form)
 	if err != nil {
 		app.clientError(w, http.StatusBadRequest)
 		return
 	}
 
-	// Get the expires value from the form as normal.
-	expires, err := strconv.Atoi(r.PostForm.Get("expires"))
-	if err != nil {
-		app.clientError(w, http.StatusBadRequest)
-		return
-	}
-
-	// Create an instance of the snippetCreateForm struct containing the values
-	// from the form and an empty map for any validation errors.
-	form := snippetCreateForm{
-		Title:   r.PostForm.Get("title"),
-		Content: r.PostForm.Get("content"),
-		Expires: expires,
-	}
-
-	// Because the Validator struct is embedded by the snippetCreateForm struct,
-	// we can call CheckField() directly on it to execute our validation checks.
-	// CheckField() will add the provided key and error message to the
-	// FieldErrors map if the check does not evaluate to true. For example, in
-	// the first line here we "check that the form.Title field is not blank". In
-	// the second, we "check that the form.Title field has a maximum character
-	// length of 100" and so on.
 	form.CheckField(validator.NotBlank(form.Title), "title", "This field cannot be blank")
 	form.CheckField(validator.MaxChars(form.Title, 100), "title", "This field cannot be more than 100 characters long")
 	form.CheckField(validator.NotBlank(form.Content), "content", "This field cannot be blank")
 	form.CheckField(validator.PermittedValue(form.Expires, 1, 7, 365), "expires", "This field must equal 1, 7 or 365")
 
-	// Use the Valid() method to see if any of the checks failed. If they did,
-	// then re-render the template passing in the form in the same way as
-	// before.
 	if !form.Valid() {
 		data := app.newTemplateData(r)
 		data.Form = form
