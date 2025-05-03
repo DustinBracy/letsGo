@@ -9,6 +9,7 @@ import (
 	"text/template"
 
 	"github.com/DustinBracy/letsGo/snippetbox/internal/models"
+	"github.com/go-playground/form/v4"
 	_ "github.com/go-sql-driver/mysql" // New import
 )
 
@@ -16,6 +17,7 @@ type application struct {
 	logger        *slog.Logger
 	snippets      *models.SnippetModel
 	templateCache map[string]*template.Template
+	formDecoder   *form.Decoder
 }
 
 func main() {
@@ -50,6 +52,8 @@ func main() {
 		logger.Error(err.Error())
 		os.Exit(1)
 	}
+	// Initialize a decoder instance...
+	formDecoder := form.NewDecoder()
 
 	// Use the slog.New() function to initialize a new structured logger, which
 	// writes to the standard out stream and uses the default settings.
@@ -58,8 +62,9 @@ func main() {
 	app := &application{
 		logger:        logger,
 		snippets:      &models.SnippetModel{DB: db},
-		templateCache: templateCache}
-
+		templateCache: templateCache,
+		formDecoder:   formDecoder,
+	}
 	// The value returned from the flag.String() function is a pointer to the flag
 	// value, not the value itself. So in this code, that means the addr variable
 	// is actually a pointer, and we need to dereference it (i.e. prefix it with
