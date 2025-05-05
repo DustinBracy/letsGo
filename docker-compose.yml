@@ -1,10 +1,10 @@
 services:
-  lets-go:
-    container_name: lets-go
+  snippetbox:
+    container_name: snippetbox
     image: cosmtrek/air
     working_dir: /snippetbox
     ports:
-      - "4000:4000"
+      - "4001:4000"
     restart: unless-stopped
     volumes:
       - ./snippetbox/:/snippetbox/
@@ -16,12 +16,19 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: snippetbox
-      MYSQL_USER: web
-      MYSQL_PASSWORD: web
     ports:
       - "3306:3306"
     volumes:
       - mysql-data:/var/lib/mysql
 
+  greenlight:
+    container_name: greenlight
+    image: cosmtrek/air
+    working_dir: /greenlight
+    ports:
+      - "4000:4000"
+    restart: unless-stopped
+    volumes:
+      - ./greenlight/:/greenlight/
 volumes:
   mysql-data:
