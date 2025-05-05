@@ -22,6 +22,7 @@ func (app *application) routes() http.Handler {
 	// just be passed directly to the file server and the corresponding static
 	// file will be served (so long as it exists).
 	mux.Handle("GET /static/", http.FileServerFS(ui.Files))
+	mux.HandleFunc("GET /ping", ping)
 
 	// Add the authenticate() middleware to the chain.
 	dynamic := alice.New(app.sessionManager.LoadAndSave, noSurf, app.authenticate)
