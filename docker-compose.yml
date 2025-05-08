@@ -8,6 +8,9 @@ services:
     restart: unless-stopped
     volumes:
       - ./snippetbox/:/snippetbox/
+    depends_on:
+      mysql:
+        condition: service_healthy
 
   mysql:
     container_name: mysql
@@ -20,6 +23,11 @@ services:
       - "3306:3306"
     volumes:
       - mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 2s
+      timeout: 5s
+      retries: 3
 
   greenlight:
     container_name: greenlight
