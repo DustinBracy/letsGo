@@ -36,7 +36,32 @@ services:
     ports:
       - "4000:4000"
     restart: unless-stopped
+    environment:
+      GREENLIGHT_DB_DSN: "postgres://greenlight:pa55word@postgres/greenlight?sslmode=disable"
     volumes:
       - ./greenlight/:/greenlight/
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  postgres:
+    container_name: postgres
+    image: postgres:latest
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: root
+      POSTGRES_DB: greenlight
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres", "-d", "greenlight"]
+      interval: 2s
+      timeout: 5s
+      retries: 3
+
 volumes:
   mysql-data:
+  postgres-data:
