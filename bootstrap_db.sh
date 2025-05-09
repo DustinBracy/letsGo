@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# SQL command to execute
-SQL_COMMANDS="
+# MYSQL command to execute
+MYSQL_COMMANDS="
 DROP TABLE IF EXISTS snippets;
 DROP TABLE IF EXISTS sessions;
 DROP TABLE IF EXISTS users;
@@ -59,5 +59,12 @@ CREATE USER 'web'@'%' IDENTIFIED BY 'pass';
 GRANT SELECT, INSERT, UPDATE, DELETE ON snippetbox.* TO 'web';
 "
 
+POSTGRES_COMMANDS="
+DROP ROLE IF EXISTS greenlight;
+CREATE ROLE greenlight WITH LOGIN PASSWORD 'pa55word';
+CREATE EXTENSION IF NOT EXISTS citext
+"
+
 # Execute the SQL in the Docker container
-docker exec -i mysql mysql -uroot -proot snippetbox -e "$SQL_COMMANDS"
+docker exec -i mysql mysql -uroot -proot snippetbox -e "$MYSQL_COMMANDS"
+docker exec -i postgres psql -U postgres -d greenlight -e -c "$POSTGRES_COMMANDS"
