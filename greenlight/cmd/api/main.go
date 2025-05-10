@@ -100,6 +100,7 @@ func openDB(cfg config) (*sql.DB, error) {
 
 	// Set the maximum number of open (in-use + idle) connections in the pool. Note that
 	// passing a value less than or equal to 0 will mean there is no limit.
+	//db.SetMaxOpenConns(cfg.db.maxOpenConns)
 	db.SetMaxOpenConns(cfg.db.maxOpenConns)
 
 	// Set the maximum number of idle connections in the pool. Again, passing a value
