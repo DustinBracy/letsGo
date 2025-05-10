@@ -60,11 +60,13 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON snippetbox.* TO 'web';
 "
 
 POSTGRES_COMMANDS="
-DROP ROLE IF EXISTS greenlight;
-CREATE ROLE greenlight WITH LOGIN PASSWORD 'pa55word';
-CREATE EXTENSION IF NOT EXISTS citext
+GRANT CREATE ON DATABASE greenlight TO greenlight;
+ALTER DATABASE greenlight OWNER TO greenlight;
+CREATE EXTENSION IF NOT EXISTS citext;
 "
 
 # Execute the SQL in the Docker container
 docker exec -i mysql mysql -uroot -proot snippetbox -e "$MYSQL_COMMANDS"
-docker exec -i postgres psql -U postgres -d greenlight -e -c "$POSTGRES_COMMANDS"
+docker exec -i postgres psql -U greenlight -d greenlight -e -c "$POSTGRES_COMMANDS"
+migrate -path=./migrations -database=postgres://greenlight:pa55word@localhost/greenlight?sslmode=disable up
+
