@@ -13,6 +13,7 @@ import (
 	// Import the pq driver so that it can register itself with the database/sql
 	// package. Note that we alias this import to the blank identifier, to stop the Go
 	// compiler complaining that the package isn't being used.
+	"github.com/DustinBracy/letsGo/greenlight/internal/data"
 	_ "github.com/lib/pq"
 )
 
@@ -33,12 +34,11 @@ type config struct {
 	}
 }
 
-// Define an application struct to hold the dependencies for our HTTP handlers, helpers,
-// and middleware. At the moment this only contains a copy of the config struct and a
-// logger, but it will grow to include a lot more as our build progresses.
+// Add a models field to hold our new Models struct.
 type application struct {
 	config config
 	logger *slog.Logger
+	models data.Models
 }
 
 func main() {
@@ -49,43 +49,32 @@ func main() {
 
 	flag.StringVar(&cfg.db.dsn, "db-dsn", os.Getenv("GREENLIGHT_DB_DSN"), "PostgreSQL DSN")
 
-	// Read the connection pool settings from command-line flags into the config struct.
-	// Note that the default values we're using are the ones we discussed above.
 	flag.IntVar(&cfg.db.maxOpenConns, "db-max-open-conns", 25, "PostgreSQL max open connections")
 	flag.IntVar(&cfg.db.maxIdleConns, "db-max-idle-conns", 25, "PostgreSQL max idle connections")
 	flag.DurationVar(&cfg.db.maxIdleTime, "db-max-idle-time", 15*time.Minute, "PostgreSQL max connection idle time")
 
 	flag.Parse()
 
-	// Initialize a new structured logger which writes log entries to the standard out
-	// stream.
 	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
 
-	// Call the openDB() helper function (see below) to create the connection pool,
-	// passing in the config struct as an argument. If this returns an error, we log
-	// it and exit the application immediately.
 	db, err := openDB(cfg)
 	if err != nil {
 		logger.Error(err.Error())
 		os.Exit(1)
 	}
-	// Defer a call to db.Close() so that the connection pool is closed before the
-	// main() function exits.
+
 	defer db.Close()
 
-	// Declare an instance of the application struct, containing the config struct and
-	// the logger.
+	logger.Info("database connection pool established")
+
+	// Use the data.NewModels() function to initialize a Models struct, passing in the
+	// connection pool as a parameter.
 	app := &application{
 		config: cfg,
 		logger: logger,
+		models: data.NewModels(db),
 	}
 
-	// Declare a new servemux and add a /v1/healthcheck route which dispatches requests
-	// to the healthcheckHandler method (which we will create in a moment).
-	mux := http.NewServeMux()
-	mux.HandleFunc("/v1/healthcheck", app.healthcheckHandler)
-
-	// Use the httprouter instance returned by app.routes() as the server handler.
 	srv := &http.Server{
 		Addr:         fmt.Sprintf(":%d", cfg.port),
 		Handler:      app.routes(),
@@ -96,6 +85,7 @@ func main() {
 	}
 
 	logger.Info("starting server", "addr", srv.Addr, "env", cfg.env)
+
 	err = srv.ListenAndServe()
 	logger.Error(err.Error())
 	os.Exit(1)
