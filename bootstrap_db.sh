@@ -69,4 +69,3 @@ CREATE EXTENSION IF NOT EXISTS citext;
 docker exec -i mysql mysql -uroot -proot snippetbox -e "$MYSQL_COMMANDS"
 docker exec -i postgres psql -U greenlight -d greenlight -e -c "$POSTGRES_COMMANDS"
 migrate -path=./migrations -database=postgres://greenlight:pa55word@localhost/greenlight?sslmode=disable up
-
