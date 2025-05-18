@@ -3,9 +3,11 @@ package main
 import (
 	"context"
 	"database/sql"
+	"expvar"
 	"flag"
 	"log/slog"
 	"os"
+	"runtime"
 	"strings"
 	"sync"
 	"time"
@@ -73,7 +75,7 @@ func main() {
 	flag.IntVar(&cfg.db.maxIdleConns, "db-max-idle-conns", 25, "PostgreSQL max idle connections")
 	flag.DurationVar(&cfg.db.maxIdleTime, "db-max-idle-time", 15*time.Minute, "PostgreSQL max connection idle time")
 
-	flag.BoolVar(&cfg.limiter.enabled, "limiter-enabled", true, "Enable rate limiter")
+	flag.BoolVar(&cfg.limiter.enabled, "limiter-enabled", false, "Enable rate limiter")
 	flag.Float64Var(&cfg.limiter.rps, "limiter-rps", 2, "Rate limiter maximum requests per second")
 	flag.IntVar(&cfg.limiter.burst, "limiter-burst", 4, "Rate limiter maximum burst")
 
@@ -114,6 +116,24 @@ func main() {
 		logger.Error(err.Error())
 		os.Exit(1)
 	}
+
+	// Publish a new "version" variable in the expvar handler containing our application
+	// version number (currently the constant "1.0.0").
+	expvar.NewString("version").Set(version)
+	// Publish the number of active goroutines.
+	expvar.Publish("goroutines", expvar.Func(func() any {
+		return runtime.NumGoroutine()
+	}))
+
+	// Publish the database connection pool statistics.
+	expvar.Publish("database", expvar.Func(func() any {
+		return db.Stats()
+	}))
+
+	// Publish the current Unix timestamp.
+	expvar.Publish("timestamp", expvar.Func(func() any {
+		return time.Now().Unix()
+	}))
 
 	// And add it to the application struct.
 	app := &application{
